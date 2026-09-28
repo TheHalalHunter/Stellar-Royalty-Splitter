@@ -25,6 +25,11 @@ import emailDigestRouter from "./routes/email-digest.js";
 import { sendWeeklyDigests } from "./jobs/weekly-digest-job.js";
 import { isEmailConfigured } from "./email/email-service.js";
 import { startRetryScheduler } from "./jobs/retry-failed-distributions.js";
+import { schedulesRouter, batchRouter } from "./routes/schedules.js";
+import { startDistributionScheduler } from "./services/distribution-scheduler.js";
+import { identityRouter } from "./routes/identity.js";
+import { backupRouter } from "./routes/backup.js";
+import { startBackupScheduler } from "./services/contract-backup.js";
 
 // Initialize database on startup
 initializeDatabase();
@@ -138,6 +143,9 @@ app.use("/api/v1/initialize", writeLimiter);
 app.use("/api/v1/distribute", writeLimiter);
 app.use("/api/v1/secondary-royalty", writeLimiter);
 app.use("/api/v1/webhooks", writeLimiter);
+app.use("/api/v1/schedules", writeLimiter);
+app.use("/api/v1/batch", writeLimiter);
+app.use("/api/v1/backup", writeLimiter);
 
 app.use("/api/v1/initialize", initializeRouter);
 app.use("/api/v1/distribute", distributeRouter);
@@ -151,6 +159,10 @@ app.use("/api/v1/contract", contractRouter);
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/preferences", preferencesRouter);
 app.use("/api/v1", emailDigestRouter);
+app.use("/api/v1/schedules", schedulesRouter);
+app.use("/api/v1/batch", batchRouter);
+app.use("/api/v1/identity", identityRouter);
+app.use("/api/v1/backup", backupRouter);
 app.use("/metrics", metricsRouter);
 app.use("/api/v1/metrics", metricsRouter);
 
@@ -205,6 +217,12 @@ const server = app.listen(PORT, () => logger.info(`API listening on http://local
 // Start the failed-distribution retry scheduler
 const retryScheduler = startRetryScheduler();
 
+// Start the distribution schedule runner
+const distributionScheduler = startDistributionScheduler();
+
+// Start the weekly contract backup scheduler
+const backupScheduler = startBackupScheduler();
+
 // Start weekly email digest scheduler if email is configured
 let digestInterval = null;
 if (isEmailConfigured()) {
@@ -240,6 +258,12 @@ const handleShutdown = createGracefulShutdownHandler({
     }
     if (retryScheduler) {
       retryScheduler.stop();
+    }
+    if (distributionScheduler) {
+      distributionScheduler.stop();
+    }
+    if (backupScheduler) {
+      backupScheduler.stop();
     }
   },
 });

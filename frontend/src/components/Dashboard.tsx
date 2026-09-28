@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import "./Dashboard.css";
+import Web3Profile from "./Web3Profile";
 import { useSettings } from "../context/SettingsContext";
 import { formatNumber, formatCurrency } from "../utils/format";
 import {
@@ -423,8 +424,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ contractId }) => {
                     <div className="earner-rank">#{index + 1}</div>
                     <div className="earner-info">
                       <div className="earner-address">
-                        {earner.address.slice(0, 10)}...
-                        {earner.address.slice(-6)}
+                        <Web3Profile address={earner.address} size="sm" compact />
                       </div>
                       <div className="earner-stats">
                         <span className="earner-amount">
@@ -466,7 +466,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ contractId }) => {
                     stats.collaboratorStats.map((collab, index) => (
                       <tr key={index}>
                         <td className="address-cell" data-label="Collaborator" title={collab.address}>
-                          {collab.address.slice(0, 10)}…{collab.address.slice(-6)}
+                          <Web3Profile address={collab.address} size="sm" compact />
                         </td>
                         <td className="text-right" data-label="Total Earned">
                           {formatCurrency(collab.totalEarned, settings.displayCurrency)}

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { api } from "../api";
+import Web3Profile from "./Web3Profile";
 import "./CollaboratorTable.css";
 
 interface Collaborator {
@@ -504,7 +505,7 @@ export default function CollaboratorTable({
                         </span>
                       ) : (
                         <span className="collab-name-text collab-name-text--unnamed">
-                          {c.address.slice(0, 8)}...{c.address.slice(-6)}
+                          <Web3Profile address={c.address} size="sm" compact />
                         </span>
                       )}
                       <span className="collab-name-edit-icon" aria-hidden="true">

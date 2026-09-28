@@ -361,4 +361,22 @@ export const api = {
     }>("/preferences/payment", { walletAddress, paymentMethod }).then(
       (res) => res.data,
     ),
+
+  // Web3 identity — ENS + Lens Protocol (#992)
+  getEnsIdentity: (address: string) =>
+    get<{
+      name: string;
+      avatar: string | null;
+      verified: boolean;
+    }>(`/identity/ens/${encodeURIComponent(address)}`),
+
+  getLensProfile: (address: string) =>
+    get<{
+      handle: string;
+      displayName: string | null;
+      picture: string | null;
+      followers: number;
+      following: number;
+      bio: string | null;
+    }>(`/identity/lens/${encodeURIComponent(address)}`),
 };

@@ -89,6 +89,80 @@ export const webhookRegisterSchema = z.object({
     }),
 });
 
+// ── Schedule schemas (#991) ────────────────────────────────────────────────────
+
+/**
+ * Shared timing fields used by both create and update schedule schemas.
+ * dayOfWeek is required for weekly/biweekly; dayOfMonth is required for monthly.
+ * Cross-field validation is enforced via .superRefine so the error surfaces on
+ * the specific missing field rather than as a generic refinement failure.
+ */
+const scheduleTimingFields = {
+  frequency: z.enum(["weekly", "biweekly", "monthly"]),
+  dayOfWeek: z.number().int().min(0).max(6).optional().nullable(),
+  dayOfMonth: z.number().int().min(1).max(28).optional().nullable(),
+  hourOfDay: z.number().int().min(0).max(23).optional().default(0),
+  minuteOfHour: z.number().int().min(0).max(59).optional().default(0),
+};
+
+function validateScheduleTiming(data, ctx) {
+  if (
+    (data.frequency === "weekly" || data.frequency === "biweekly") &&
+    data.dayOfWeek == null
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["dayOfWeek"],
+      message: "dayOfWeek (0–6) is required for weekly and biweekly schedules",
+    });
+  }
+  if (data.frequency === "monthly" && data.dayOfMonth == null) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["dayOfMonth"],
+      message: "dayOfMonth (1–28) is required for monthly schedules",
+    });
+  }
+}
+
+export const createScheduleSchema = z
+  .object({
+    contractId: contractAddress,
+    walletAddress: stellarAddress,
+    tokenId: contractAddress,
+    ...scheduleTimingFields,
+  })
+  .superRefine(validateScheduleTiming);
+
+export const updateScheduleSchema = z
+  .object({
+    frequency: z.enum(["weekly", "biweekly", "monthly"]).optional(),
+    dayOfWeek: z.number().int().min(0).max(6).optional().nullable(),
+    dayOfMonth: z.number().int().min(1).max(28).optional().nullable(),
+    hourOfDay: z.number().int().min(0).max(23).optional(),
+    minuteOfHour: z.number().int().min(0).max(59).optional(),
+    enabled: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Only cross-validate timing when frequency is explicitly being changed
+    if (data.frequency != null) {
+      validateScheduleTiming(data, ctx);
+    }
+  });
+
+export const executeBatchSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        contractId: contractAddress,
+        walletAddress: stellarAddress,
+        tokenId: contractAddress,
+      })
+    )
+    .min(1, "items array must contain at least one entry")
+    .max(50, "items array must not exceed 50 entries per batch"),
+});
+
 export const transactionConfirmSchema = z.object({
   transactionId: z.number().int().positive().optional(),
   blockTime: z.string().optional(),
