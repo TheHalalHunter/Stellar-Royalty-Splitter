@@ -274,6 +274,19 @@ export const AUDIT_ACTIONS = [
   "quickbooks_connected",
   "quickbooks_distributions_synced",
   "quickbooks_invoice_paid",
+  // Event sourcing (#1066) — domain events emitted via the event store
+  "ContractInitialized",
+  "DistributionInitiated",
+  "DistributionConfirmed",
+  "DistributionFailed",
+  "SecondarySaleRecorded",
+  "SecondaryRoyaltyDistributed",
+  "DisputeOpened",
+  "DisputeResolved",
+  "DisputeEscalated",
+  "CollaboratorAdded",
+  "CollaboratorStatusChanged",
+  "CommandRejected",
 ];
 
 export function validate(schema) {

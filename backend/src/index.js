@@ -96,6 +96,7 @@ import { identityRouter } from "./routes/identity.js";
 import { backupRouter } from "./routes/backup.js";
 import { startDistributionScheduler } from "./services/distribution-scheduler.js";
 import { startBackupScheduler } from "./services/contract-backup.js";
+import { eventsRouter, commandsRouter } from "./routes/events.js";
 
 // Initialize database on startup
 initializeDatabase();
@@ -491,6 +492,11 @@ app.use("/api/v1/identity", identityRouter);
 // Contract backup and disaster recovery (#993)
 app.use("/api/v1/backup", writeLimiter);
 app.use("/api/v1/backup", backupRouter);
+
+// Event sourcing and CQRS (#1066)
+app.use("/api/v1/events", eventsRouter);
+app.use("/api/v1/commands", writeLimiter);
+app.use("/api/v1/commands", commandsRouter);
 
 // Admin operations (separate from /api/v1; protected by ADMIN_ROTATE_TOKEN)
 const RATE_LIMIT_ADMIN_WINDOW_MS = 60_000;

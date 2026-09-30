@@ -937,6 +937,33 @@ export function initializeDatabase() {
         CREATE INDEX IF NOT EXISTS idx_contract_backups_status ON contract_backups(status);
       `,
     },
+    {
+      // #1066: Event sourcing and CQRS — append-only domain event store
+      version: 26,
+      sql: `
+        CREATE TABLE IF NOT EXISTS domain_events (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          eventId    TEXT    NOT NULL UNIQUE,
+          eventType  TEXT    NOT NULL,
+          aggregateType TEXT NOT NULL,
+          aggregateId   TEXT NOT NULL,
+          contractId    TEXT,
+          actor         TEXT,
+          payload    TEXT    NOT NULL DEFAULT '{}',
+          metadata   TEXT    NOT NULL DEFAULT '{}',
+          version    INTEGER NOT NULL DEFAULT 1,
+          occurredAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_domain_events_aggregateId
+          ON domain_events(aggregateType, aggregateId, occurredAt ASC);
+        CREATE INDEX IF NOT EXISTS idx_domain_events_contractId
+          ON domain_events(contractId, occurredAt ASC);
+        CREATE INDEX IF NOT EXISTS idx_domain_events_type
+          ON domain_events(eventType, occurredAt ASC);
+        CREATE INDEX IF NOT EXISTS idx_domain_events_occurredAt
+          ON domain_events(occurredAt ASC);
+      `,
+    },
   ];
 
   for (const migration of migrations) {

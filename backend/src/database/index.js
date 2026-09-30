@@ -452,3 +452,15 @@ export {
   listBatchExecutionsBySchedule,
   listRecentBatchExecutions,
 } from "./schedules.js";
+
+// Event sourcing and CQRS (#1066)
+export {
+  appendEvent,
+  getAggregateEvents,
+  getContractEvents,
+  countContractEvents,
+  getEventById,
+  getAggregateVersion,
+  EventTypes,
+  AggregateTypes,
+} from "./event-store.js";
